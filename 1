@@ -1,0 +1,18 @@
+% SQL refresher code 
+% Basic querying and subquerying 
+
+% Select 10 random columns from a table
+
+SELECT * FROM flights
+LIMIT 10;
+
+% perform a subquery that filters the table 'flights' using criteria established with the table 'airports', i.e. flights
+% that have departed from airports less than 2000 ft above sea-level. 
+
+select * 
+from flights
+where origin in (
+		select code from airports
+		where elevation < 2000);
+        
+
