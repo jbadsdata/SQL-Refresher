@@ -1,0 +1,23 @@
+from random import choice
+import random
+
+
+# initialize the grid
+
+grid_size = 21 
+
+moves = [-1,1]
+
+# place the drunk man at the middle of the grid
+
+M = grid_size // 2
+
+for i in range(100):
+    if 1 < M < 21:
+        dM = random.choice(moves)
+        M += dM
+        L = (grid_size - 1) - M
+        print ('start| ' + '_ '*M + 'o ' + '_ '*L + '|end')
+    else:
+        print ('He reached the wall')
+        break
