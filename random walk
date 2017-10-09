@@ -14,7 +14,7 @@ t = 0
 
 M = grid_size // 2
 
-# range a loop until he reaches a wall
+# run a for loop until he reaches a wall
 
 for i in range(100):
     t = t + 1
@@ -24,5 +24,5 @@ for i in range(100):
         L = (grid_size - 1) - M
         print ('start| ' + '_ '*M + 'o ' + '_ '*L + '|end', t)
     else:
-        print ('Mumber of steps to reach a wall:', t )
+        print ('Number of steps to reach a wall:', t )
         break
