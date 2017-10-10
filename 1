@@ -14,5 +14,49 @@ from flights
 where origin in (
 		select code from airports
 		where elevation < 2000);
-        
+		
+% inner and outer queries to perform transformations on a single table
+
+SELECT a.dep_month,
+       a.dep_day_of_week,
+       AVG(a.flight_distance) AS average_distance
+  
+ % inner query start
+  FROM (
+        SELECT dep_month,
+              dep_day_of_week,
+               dep_date,
+               sum(distance) AS flight_distance
+          FROM flights
+         GROUP BY 1,2,3
+       ) a
+% inner query end       
+
+ GROUP BY 1,2
+ ORDER BY 1,2;
+
+% Correlated query. Rows are filtered based relationship to the average distance. 
+ 
+SELECT id
+FROM flights AS f
+WHERE distance < (
+
+% start inner query
+
+	SELECT avg(distance)
+	FROM flights
+	WHERE carrier = f.carrier);
+
+% end inner query
+
+
+% Second example of a correlated subquery
+
+SELECT origin, id,
+    (SELECT COUNT(*)
+FROM flights f
+WHERE f.id < flights.id
+AND f.origin=flights.origin) + 1
+ AS flight_sequence_number
+FROM flights;
 
