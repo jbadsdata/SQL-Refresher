@@ -36,6 +36,7 @@ SELECT a.dep_month,
  ORDER BY 1,2;
 
 % Correlated query. Rows are filtered based relationship to the average distance. 
+% Correlated queries are not very efficient.
  
 SELECT id
 FROM flights AS f
@@ -60,13 +61,134 @@ AND f.origin=flights.origin) + 1
  AS flight_sequence_number
 FROM flights;
 
+%% SET OPERATIONS IN SQL - UNION, UNION ALL, JOIN, EXCEPT, INTERSECT %%
 
 % perform a UNION - merge columns from two tables into a single table. 
 
 SELECT brand FROM % column name (same for table_1 and table_2)
 legacy_products  % table_1
-UNION
+UNION  % dedups column values
 SELECT brand FROM
 new_products; % table_2
 
-% perform a join - merge rows from two tables into a single table
+% Use UNION ALL to pull data for complete historic analysis
+
+SELECT id,sale_price FROM order_items
+UNION ALL % allows for duplicates
+SELECT id,sale_price FROM order_items_historic;
+
+% Find the total count of order items from table1 and table2
+
+SELECT id, avg(a.sale_price) FROM (
+  SELECT id, sale_price FROM order_items
+  UNION ALL
+  SELECT id, sale_price FROM order_items_historic) AS a 
+  GROUP BY 1; % group by expression1 i.e. id
+ 
+% INTERSECT returns rows froms from table1 that are identical to rows in table2. 
+ 
+SELECT column_name(s) FROM table1
+
+INTERSECT
+
+SELECT column_name(s) FROM table2;
+ 
+% EXCEPT returns rows from the table1 expect those present in table2
+
+SELECT column_name(s) FROM table1
+
+EXCEPT
+
+SELECT column_name(s) FROM table2;
+
+%% AGGREGATE FUNCTIONS
+
+%% COUNT aggregates data from multiple rows. It counts the number of rows.
+
+SELECT COUNT(id)
+
+FROM flights;
+
+%% filter out null values for an accurate count
+
+SELECT COUNT(*) 
+FROM flights 
+WHERE arr_time IS NOT NULL and destination = 'ATL';
+
+%%% Conditional logic, CASE statement. SQL equivalent of if, elif, else in Python. 
+
+SELECT
+    CASE
+        WHEN elevation < 500 THEN 'Low' % [:,500]
+        WHEN elevation BETWEEN 500 AND 1999 THEN 'Medium'  % [500,1999]
+        WHEN elevation >= 2000 THEN 'High' % [2000,:]
+        ELSE 'Unknown'
+    END AS elevation_tier
+    , COUNT(*)
+FROM airports
+
+% COUNT(CASE WHEN). Will only count items that meet the terms specified in the count parenthesis.
+
+SELECT    state, 
+    COUNT(CASE WHEN elevation < 1000 THEN 1 ELSE NULL END) as count_low_elevation_aiports 
+FROM airports
+GROUP BY 1;
+
+% pair aggregate function and CASE WHEN. In the output, non-delta flights are automatically assigned 0 values. 
+
+SELECT origin, sum(distance) as total_flight_distance, sum(CASE WHEN carrier = 'DL' THEN distance ELSE 0 END) as total_delta_flight_distance 
+FROM flights 
+GROUP BY origin;
+
+% calculate % of the whole, parent total = row value. In this case, origin.
+
+SELECT origin, 
+    100.0*(sum(CASE WHEN carrier = 'DL' THEN distance ELSE 0 END)/sum(distance)) 
+    as percentage_flight_distance_from_delta FROM flights 
+GROUP BY origin;
+
+SELECT state, 
+100.0 * sum(CASE WHEN elevation >= 2000 THEN 1 ELSE 0 END) / count(*)  
+as percentage_high_elevation_airports 
+FROM airports GROUP BY state;
+
+%% Date, Time, and String Functions
+
+% date functions database specfic, verify the functions that exist
+
+SELECT DATETIME(delivery_time)
+FROM baked_goods;
+
+% The below would count the number of baked goods per DAY by applying a function 
+% that transforms hh:mm:ss into YYYY-MM-DD. Of course, depends on the date function in the RD.
+
+SELECT DATE(delivery_time),
+			 count(*) as
+			 count_baked_goods
+FROM baked_goods
+    GROUP BY DATE(delivery_time);
+
+% create a new column with adjusted times by adding the phrases in single quotes.
+
+SELECT DATETIME(delivery_time, '+5 hours', '20 minutes', '2 day') 
+as package_time
+FROM baked_goods;
+
+
+% convert number1 from integer to float (also referenced as a real number)
+
+SELECT CAST(2 AS REAL)/6;
+
+% roundoff a real number to 2 decimal places
+
+SELECT ROUND(distance, 2) 
+as distance_from_market
+FROM bakeries;
+
+& basic string concatenation
+
+SELECT first_name || ' ' || last_name as full_name
+FROM bakeries;
+
+
+
