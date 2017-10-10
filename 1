@@ -60,3 +60,13 @@ AND f.origin=flights.origin) + 1
  AS flight_sequence_number
 FROM flights;
 
+
+% perform a UNION - merge columns from two tables into a single table. 
+
+SELECT brand FROM % column name (same for table_1 and table_2)
+legacy_products  % table_1
+UNION
+SELECT brand FROM
+new_products; % table_2
+
+% perform a join - merge rows from two tables into a single table
